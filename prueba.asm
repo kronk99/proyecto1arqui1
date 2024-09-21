@@ -19,8 +19,8 @@ _start: ;apertura del archivo
 	MOV [filedescr] , eax ;guarda el file descriptor
 	
 _counters:;asigna el conteo de palabras y el offset a valores correspondientes	
-	MOV edi,0 ;asigna el contador de cuantas veces aparece la palabra
-	MOV eax ,[conteo]
+	MOV edi,1 ;asigna el contador de cuantas veces aparece la palabra, por default es 1
+	MOV ebx ,[conteo]
 	SHL ebx, 2  ; multiplica * 4 el conteo para saber el offset
 	MOV esi, ebx ;contador del lseek
 _desplazamiento:
@@ -33,14 +33,14 @@ _lectura: ;ACA ES LA LECTURA
 	MOV ebx,[filedescr] 
 	MOV eax, 3 
 	MOV ecx , buffer 
-	MOV edx , 15000 
+	MOV edx , 60000 
 	INT 80h
-	CMP eax,0 ;si el buffer es 0, salta a fin de lectura 
-	JE fin_lectura
+	CMP eax,0 si el buffer es 0, salta a fin de lectura 
+	JE _salida
 	
 	 
 	MOV ecx,0 ;contador de movimiento en el buffer.
-	MOV edx, [buffer]
+	MOV edx, [buffer] ;mueve a edx lo que haya en buffer , posicion 1
 	MOV [actualW] , edx ;guarda la palabra que compara actualmente.
 procesado: 
 	CMP ecx,15000 ;si esi es igual al maximo del buffer llegue al final del procesado
@@ -66,14 +66,14 @@ _comparacion:
 	JMP _comparacion
 guardar:
 	MOV [memoria+ebx] ,  edi
-	MOV ebx, [actualW]
-	MOV [palabra+ebx] , ebx ;CAMBIAR ESTE EDI POR LA PALABRA ACTUAL.	
+	MOV eax, [actualW] ;carga en eax el valor de la palabra actual
+	MOV [palabra+ebx] , eax ;CAMBIAR ESTE EDI POR LA PALABRA ACTUAL.	
 finalizar: ;revisa si ya es igual
 	MOV ebx,[conteo]
-    	CMP ebx, 14999       ; Comparar conteo con tamaño
+    	CMP ebx, 60000      ; Comparar conteo con tamaño de 60 mil bytes
     	JGE _salida             ; Si conteo >= tamaño, ir a salida
 
-    	ADD ebx, 1              ; Sumar 1 a ebx
+    	ADD ebx, 4             ; Sumar 4 a ebx , dadoq ue son 15 mil bytes
     	MOV [conteo], ebx       ; Guardar el nuevo conteo en memoria
     	JMP _counters           ; Volver a empezar
 
