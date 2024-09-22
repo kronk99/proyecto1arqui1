@@ -19,25 +19,30 @@ _start: ;apertura del archivo
 	MOV ecx,0
 	INT 80h
 	MOV [filedescr] , eax ;guarda el file descriptor
+	
+_counters:;asigna el conteo de palabras y el offset a valores correspondientes	
+	MOV edi,1 ;asigna el contador de cuantas veces aparece la palabra, por default es 1
+	MOV ebx ,[conteo]
+	SHL ebx, 2  ; multiplica * 4 el conteo para saber el offset
+	MOV esi, ebx ;contador del lseek
+_desplazamiento:
+	MOV ebx,[filedescr]
+	MOV eax,19
+	MOV ecx ,esi ;esi es donde llevo el contador del puntero al archivo.
+	MOV edx,0 
+	INT 80h
 _lectura: ;ACA ES LA LECTURA
 	MOV ebx,[filedescr] 
 	MOV eax, 3 
 	MOV ecx , buffer 
 	MOV edx , 60000 
 	INT 80h
-_counters:;asigna el conteo de palabras y el offset a valores correspondientes	
-	MOV edi,1 ;asigna el contador de cuantas veces aparece la palabra, por default es 1
-	MOV ebx ,[conteo]
-	SHL ebx, 2  ; multiplica * 4 el conteo para saber el offset
-	MOV esi, ebx ;contador del lseek
-	
-	MOV ecx,0 ;contador de movimiento en el buffer.
-	MOV edx, [buffer+esi] ;mueve a edx lo que haya en buffer , posicion 1
-	
-	;CONDICION DE SALIDA
-	CMP edx,0  ;si el buffer es 0, salta a fin de lectura 
+	CMP eax,0  ;si el buffer es 0, salta a fin de lectura 
 	JE _salida
-	;CONDICION DE SALIDA
+	
+	 
+	MOV ecx,0 ;contador de movimiento en el buffer.
+	MOV edx, [buffer] ;mueve a edx lo que haya en buffer , posicion 1
 	MOV [actualW] , edx ;guarda la palabra que compara actualmente.
 	
 repetida: ;sale del bucle hasta que verifique que no esta repetida o si este repetida
@@ -53,8 +58,8 @@ repetida: ;sale del bucle hasta que verifique que no esta repetida o si este rep
 	ADD ecx,1
 	JMP repetida
 preproce:
-	MOV ecx,esi ;contador de movimiento en el buffer.
-	MOV edx, [actualW] ;mueve a edx lo que haya en buffer , posicion 1
+	MOV ecx,0 ;contador de movimiento en el buffer.
+	MOV edx, [buffer] ;mueve a edx lo que haya en buffer , posicion 1
 	;ACA EDX SIGUE SIENDO EL PRIMER ELEMENTO DEL BUFFER
 procesado: 
 	CMP ecx,60000 ;si esi es igual al maximo del buffer llegue al final del procesado
@@ -100,8 +105,7 @@ nuevomenor:
 siguiente:
     	ADD ecx, 1                   ; Incrementar ECX para pasar al siguiente valor
     	JMP nuevomenor               ; Repetir el ciclo
-    	
-finalizar: 
+finalizar: ;revisa si ya es igual
 	MOV ebx,[conteo]
     
     	ADD ebx, 1            ; Sumar 4 a ebx , dadoq ue son 15 mil bytes
