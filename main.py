@@ -1,6 +1,8 @@
-import procesarToken
+import controller
+from vista import vista
 if __name__ == '__main__':
-    procesarTexto= procesarToken.tokenizer('texto.txt')
-
-    procesarTexto.procesarTexto()
-    procesarTexto.guardarProcesado()
+    controlador = controller.AppControlador()
+    vistaActual = vista(controlador)  # Se pasa el callback
+    controlador.setVIsta(vistaActual)
+    vistaActual.mainloop()
+   
